@@ -4,17 +4,17 @@ from .models import *
 class AuteurSerializer(ModelSerializer):
     class Meta:
         model = Auteur
-        fields = '__all__'
+        fields = ['id', 'nom', 'date_naissance', 'date_mort', 'biographie']
 
 class TagSerializer(ModelSerializer):
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ['id', 'tag', 'pour_adulte', 'modifiable']
 
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['id', 'username']
 
 class LivreSerializer(ModelSerializer):
     auteurs = AuteurSerializer(many=True, read_only=True)
@@ -22,7 +22,7 @@ class LivreSerializer(ModelSerializer):
 
     class Meta:
         model = Livre
-        fields = '__all__'
+        fields = ['id', 'nom', 'date_sortie', 'nombre_pages', 'synopsis', 'edition', 'isbn', 'image', 'auteurs', 'tags']
 
 class LectureSerializer(ModelSerializer):
     livre = LivreSerializer(read_only=True)
@@ -30,4 +30,4 @@ class LectureSerializer(ModelSerializer):
 
     class Meta:
         model = Lecture
-        fields = '__all__'
+        fields = ['id', 'date_debut', 'date_fin', 'statut', 'note', 'marque_pages', 'commentaire', 'livre', 'lecteur']
