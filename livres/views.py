@@ -529,7 +529,7 @@ def retirer_souhait(request, id):
     if livre in Livre.objects.filter(user=request.user):
         request.user.liste_de_souhaits.remove(livre)
 
-    return redirect('livres:liste_de_souhait')
+    return redirect('livres:liste_de_souhaits')
 
 @login_required
 def liste_de_souhaits(request):
