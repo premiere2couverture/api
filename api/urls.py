@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import (
 
 router = DefaultRouter()
 router.register('auteurs', AuteurViewSet)
-router.register('tags', TagViewSet)
+router.register('tags', TagViewSet, basename='tag')
 router.register('users', UserViewSet)
 router.register('livres', LivreViewSet, basename='livre')
 router.register('lectures', LectureViewSet, basename='lecture')
