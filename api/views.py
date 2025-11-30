@@ -75,9 +75,20 @@ class AuteurViewSet(ModelViewSet):
     permission_classes = [CustomAuteurPermission]
 
 class TagViewSet(ModelViewSet):
-    queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [CustomTagPermission]
+
+    def get_queryset(self):
+        """
+        Filtre les tags pour adultes si l'utilisateur n'est pas autorisé à les voir.
+        """
+        user = self.request.user
+        queryset = Tag.objects.all()
+
+        if not user.is_authenticated or not est_majeur(user) or user.cacher_pour_adulte:
+            return queryset.filter(pour_adulte=False)
+        
+        return queryset
 
     def perform_update(self, serializer):
         if not serializer.instance.modifiable:

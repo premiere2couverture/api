@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from .models import *
+from .utils import est_majeur
 
 class AuteurSerializer(ModelSerializer):
     class Meta:
@@ -35,7 +36,7 @@ class UserSerializer(ModelSerializer):
 
 class LivreSerializer(ModelSerializer):
     auteurs = AuteurSerializer(many=True, read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
+    tags = serializers.SerializerMethodField()
     auteurs_ids = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, queryset=Auteur.objects.all(), source='auteurs'
     )
@@ -46,6 +47,20 @@ class LivreSerializer(ModelSerializer):
     class Meta:
         model = Livre
         fields = ['id', 'nom', 'date_sortie', 'nombre_pages', 'synopsis', 'edition', 'isbn', 'image', 'auteurs', 'tags', 'auteurs_ids', 'tags_ids']
+
+    def get_tags(self, obj):
+        """
+        Filtre la liste des tags associés à ce livre en fonction de l'utilisateur qui fait la requête.
+        """
+        request = self.context.get('request')
+        user = request.user if request else None
+        
+        tags = obj.tags.all()
+
+        if not user or not user.is_authenticated or not est_majeur(user) or user.cacher_pour_adulte:
+            tags = tags.filter(pour_adulte=False)
+
+        return TagSerializer(tags, many=True).data
 
 class LectureSerializer(ModelSerializer):
     livre = LivreSerializer(read_only=True)
