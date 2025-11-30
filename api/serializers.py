@@ -73,4 +73,33 @@ class LectureSerializer(ModelSerializer):
         model = Lecture
         fields = ['id', 'date_debut', 'date_fin', 'statut', 'note', 'marque_pages', 'commentaire', 'livre', 'livre_id', 'lecteur']
         read_only_fields = ['lecteur']
+    
+    def validate(self, data):
+        """
+        Validation personnalisée pour vérifier la cohérence des données.
+        """
+        date_debut = data.get('date_debut')
+        date_fin = data.get('date_fin')
+
+        if self.instance:
+            date_debut = date_debut or self.instance.date_debut
+            date_fin = date_fin or self.instance.date_fin
+
+        if date_debut and date_fin and date_fin < date_debut:
+            raise serializers.ValidationError({
+                "date_fin": "La date de fin ne peut pas être antérieure à la date de début."
+            })
+
+        marque_pages = data.get('marque_pages')
+        
+        livre = data.get('livre')
+        if not livre and self.instance:
+            livre = self.instance.livre
+            
+        if marque_pages and livre and marque_pages > livre.nombre_pages:
+             raise serializers.ValidationError({
+                "marque_pages": f"Le marque-page ({marque_pages}) ne peut pas dépasser le nombre de pages du livre ({livre.nombre_pages})."
+            })
+
+        return data
 
