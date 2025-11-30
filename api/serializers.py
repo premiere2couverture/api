@@ -38,10 +38,18 @@ class LivreSerializer(ModelSerializer):
     auteurs = AuteurSerializer(many=True, read_only=True)
     tags = serializers.SerializerMethodField()
     auteurs_ids = serializers.PrimaryKeyRelatedField(
-        many=True, write_only=True, queryset=Auteur.objects.all(), source='auteurs'
+        many=True,
+        write_only=True,
+        queryset=Auteur.objects.all(),
+        source='auteurs',
+        required=False
     )
     tags_ids = serializers.PrimaryKeyRelatedField(
-        many=True, write_only=True, queryset=Tag.objects.all(), source='tags'
+        many=True,
+        write_only=True,
+        queryset=Tag.objects.all(),
+        source='tags',
+        required=False
     )
 
     class Meta:
@@ -61,6 +69,17 @@ class LivreSerializer(ModelSerializer):
             tags = tags.filter(pour_adulte=False)
 
         return TagSerializer(tags, many=True).data
+    
+    def to_internal_value(self, data):
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+
+        if 'isbn' in data and data['isbn']:
+            data['isbn'] = data['isbn'].replace('-', '').replace(' ', '')
+            
+        return super().to_internal_value(data)
 
 class LectureSerializer(ModelSerializer):
     livre = LivreSerializer(read_only=True)
