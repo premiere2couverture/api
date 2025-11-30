@@ -9,6 +9,7 @@ from django.contrib.auth.models import Group
 from .models import *
 from .serializers import *
 from .utils import est_majeur
+from rest_framework.permissions import AllowAny
 
 class CustomLivrePermission(BasePermission):
     def has_permission(self, request, view):
@@ -61,6 +62,13 @@ class CustomTagPermission(BasePermission):
             return request.user.has_perm('api.supprimer_tag')
         return False
 
+class IsSelfOrReadOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return request.user.is_authenticated and (obj == request.user or request.user.is_staff)
+
+        return obj == request.user
+
 class AuteurViewSet(ModelViewSet):
     queryset = Auteur.objects.all()
     serializer_class = AuteurSerializer
@@ -84,7 +92,14 @@ class TagViewSet(ModelViewSet):
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsSelfOrReadOnly()]
+        else:
+            return [IsAuthenticated()]
 
     @action(detail=False, methods=['get'])
     def me(self, request):
