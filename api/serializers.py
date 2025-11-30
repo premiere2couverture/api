@@ -24,12 +24,6 @@ class UserSerializer(ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-class GroupSerializer(ModelSerializer):
-    class Meta:
-        model = Group
-        fields = ['id', 'name']
-
-
 class LivreSerializer(ModelSerializer):
     auteurs = AuteurSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
